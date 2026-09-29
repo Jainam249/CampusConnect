@@ -1,0 +1,13 @@
+{
+  "name": "campusconnect-order-service",
+  "version": "1.0.0",
+  "description": "Order microservice for CampusConnect",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "mongoose": "^8.18.0"
+  }
+}

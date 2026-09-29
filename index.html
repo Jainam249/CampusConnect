@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusConnect Dashboard</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- Google Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+  </head>
+
+  <body>
+    <!-- ================= NAVBAR ================= -->
+
+    <nav>
+      <div class="logo">
+        <i class="fa-solid fa-graduation-cap"></i>
+        CampusConnect
+      </div>
+
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Services</a></li>
+        <li><a href="#">Dashboard</a></li>
+        <li><a href="#">Notifications</a></li>
+        <li><a href="#">Profile</a></li>
+      </ul>
+    </nav>
+
+    <!-- ================= HERO ================= -->
+
+    <section class="hero">
+      <div class="hero-left">
+        <h1 id="greeting"></h1>
+
+        <!-- Static academic info (not part of the API) -->
+        <p><strong>Student ID:</strong> 202512012</p>
+        <p><strong>Department:</strong> MSc IT</p>
+        <p><strong>Semester:</strong> 3</p>
+
+        <!-- Dynamic profile info, populated from JSONPlaceholder /users/1 -->
+        <div id="profileCard" class="profile-card">
+          <p><strong>Name:</strong> <span id="profile-name">Loading...</span></p>
+          <p><strong>Username:</strong> <span id="profile-username">Loading...</span></p>
+          <p><strong>Email:</strong> <span id="profile-email">Loading...</span></p>
+          <p><strong>Phone:</strong> <span id="profile-phone">Loading...</span></p>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="clock-card">
+          <i class="fa-regular fa-calendar"></i>
+
+          <h2 id="date"></h2>
+
+          <!-- <h3 id="time"></h3> -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SUMMARY ================= -->
+
+    <section class="summary">
+      <div class="card">
+        <i class="fa-solid fa-user-check"></i>
+        <h2>91%</h2>
+        <p>Attendance</p>
+      </div>
+
+      <div class="card">
+        <i class="fa-solid fa-book"></i>
+        <h2>6</h2>
+        <p>Courses</p>
+      </div>
+
+      <div class="card">
+        <i class="fa-solid fa-file"></i>
+        <h2>3</h2>
+        <p>Assignments</p>
+      </div>
+
+      <div class="card">
+        <i class="fa-solid fa-pencil"></i>
+        <h2>2</h2>
+        <p>Upcoming Exams</p>
+      </div>
+
+      <div class="card">
+        <i class="fa-solid fa-award"></i>
+        <h2>8.70</h2>
+        <p>CGPA</p>
+      </div>
+
+      <div class="card">
+        <i class="fa-solid fa-bell"></i>
+        <h2>5</h2>
+        <p>Notifications</p>
+      </div>
+    </section>
+
+    <!-- ================= MAIN ================= -->
+
+    <div class="main-grid">
+      <!-- Timetable -->
+
+      <div class="panel">
+        <h2><i class="fa-solid fa-clock"></i> Today's Timetable</h2>
+
+        <table>
+          <tr>
+            <th>Time</th>
+            <th>Subject</th>
+            <th>Room</th>
+          </tr>
+
+          <tr>
+            <td>9:00 AM</td>
+            <td>Web Services</td>
+            <td>Lab 4</td>
+          </tr>
+
+          <tr>
+            <td>11:00 AM</td>
+            <td>Software Testing</td>
+            <td>CEP 209</td>
+          </tr>
+
+          <tr>
+            <td>2:00 PM</td>
+            <td>Cloud Computing</td>
+            <td>CEP 212</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Announcements (now populated from JSONPlaceholder /posts) -->
+
+      <div class="panel">
+        <h2><i class="fa-solid fa-bullhorn"></i> Recent Announcements</h2>
+
+        <div id="announcementsContainer">
+          <p class="loading-msg">Loading announcements...</p>
+        </div>
+      </div>
+
+      <!-- Assignments (new panel, populated from JSONPlaceholder /todos) -->
+
+      <div class="panel">
+        <h2><i class="fa-solid fa-list-check"></i> Assignments</h2>
+
+        <div class="assignment-filters">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="pending">Pending</button>
+          <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+
+        <ul id="assignmentsList">
+          <li class="loading-msg">Loading assignments...</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ================= EVENTS ================= -->
+
+    <section class="events">
+      <h2><i class="fa-solid fa-calendar-days"></i> Upcoming Events</h2>
+
+      <div class="event-container">
+        <div class="event-card">
+          <h3>Hackathon</h3>
+
+          <p>18 August 2026</p>
+        </div>
+
+        <div class="event-card">
+          <h3>Placement Talk</h3>
+
+          <p>22 August 2026</p>
+        </div>
+
+        <div class="event-card">
+          <h3>Sports Festival</h3>
+
+          <p>30 August 2026</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SERVICES ================= -->
+
+    <section class="services">
+      <h2><i class="fa-solid fa-layer-group"></i> Quick Services</h2>
+
+      <input type="text" id="search" placeholder="Search Services..." />
+
+      <div class="service-grid" id="serviceGrid">
+        <div class="service">Attendance</div>
+
+        <div class="service">Registration</div>
+
+        <div class="service">Fee Payment</div>
+
+        <div class="service">Transcript</div>
+
+        <div class="service">Library</div>
+
+        <div class="service">Timetable</div>
+      </div>
+    </section>
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer>
+      <p>© 2026 CampusConnect | Contact | Help Desk | Privacy Policy</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+  </body>
+</html>

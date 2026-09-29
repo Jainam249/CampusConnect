@@ -1,0 +1,72 @@
+services:
+  student-service:
+    build: ./student-services
+    container_name: student-service
+    environment:
+      PORT: 3001
+      MONGODB_URI: mongodb://mongodb:27017/campusconnect_students
+      COURSE_SERVICE_URL: http://course-service:3002
+    depends_on:
+      - mongodb
+      - course-service
+    networks:
+      - student-network
+
+  gateway:
+    build: ./gateway
+    container_name: campusconnect-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      USER_SERVICE_URL: http://student-service:3001
+      PRODUCT_SERVICE_URL: http://course-service:3002
+      ORDER_SERVICE_URL: http://order-service:3003
+    depends_on:
+      - student-service
+      - course-service
+    networks:
+      - student-network
+    restart: unless-stopped
+
+  course-service:
+    build: ./course-services
+    container_name: course-service
+    environment:
+      PORT: 3002
+      MONGODB_URI: mongodb://mongodb:27017/campusconnect_courses
+    depends_on:
+      - mongodb
+    networks:
+      - student-network
+
+  order-service:
+    build: ./order-services
+    container_name: order-service
+    environment:
+      PORT: 3003
+      MONGODB_URI: mongodb://mongodb:27017/campusconnect_orders
+      USER_SERVICE_URL: http://student-service:3001
+      PRODUCT_SERVICE_URL: http://course-service:3002
+    depends_on:
+      - mongodb
+      - student-service
+      - course-service
+    networks:
+      - student-network
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    volumes:
+      - student-mongo-data:/data/db
+    networks:
+      - student-network
+
+volumes:
+  student-mongo-data:
+
+networks:
+  student-network:
+    driver: bridge
