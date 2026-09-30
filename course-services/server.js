@@ -41,6 +41,17 @@ const courseSchema = new mongoose.Schema(
 
 const Course = mongoose.model("Course", courseSchema);
 
+// Root Endpoint
+app.get("/", (req, res) => {
+  res.status(200).json({
+    service: "CampusConnect Course Service",
+    status: "UP",
+    endpoints: {
+      courses: "/courses",
+    },
+  });
+});
+
 // =====================================================
 // GET /courses
 // =====================================================

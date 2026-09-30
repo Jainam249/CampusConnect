@@ -16,6 +16,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
+// Root Endpoint
+app.get("/", (req, res) => {
+  res.status(200).json({
+    service: "CampusConnect Student Service",
+    status: "UP",
+    endpoints: {
+      students: "/students",
+      swagger: "/swagger",
+      openapi: "/openapi.json",
+    },
+  });
+});
+
 // =====================================================
 // MongoDB Student Model
 // =====================================================

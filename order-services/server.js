@@ -45,6 +45,18 @@ const orderSchema = new mongoose.Schema(
 
 const Order = mongoose.model("Order", orderSchema);
 
+// Root Endpoint
+app.get("/", (req, res) => {
+  res.status(200).json({
+    service: "CampusConnect Order Service",
+    status: "UP",
+    endpoints: {
+      health: "/health",
+      orders: "/orders",
+    },
+  });
+});
+
 // Health check
 app.get("/health", (req, res) => {
   res.status(200).json({
