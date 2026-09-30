@@ -29,6 +29,20 @@ app.use((req, res, next) => {
   next();
 });
 
+// Root welcome endpoint
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "CampusConnect API Gateway is running.",
+    endpoints: {
+      health: "/health",
+      users: "/users",
+      products: "/products",
+      orders: "/orders",
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
