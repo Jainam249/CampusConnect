@@ -60,6 +60,19 @@ The application uses Docker Compose for local orchestration and MongoDB for pers
 
 The API Gateway is the intended public entry point for client requests. Backend services communicate using their configured service URLs.
 
+### Local vs Cloud Architecture
+
+| Layer | Local (Docker Compose) | Cloud (Render) |
+| :--- | :--- | :--- |
+| **Entry** | Postman / React (`localhost:3000`) | Internet client (`https://<gateway-public-url>`) |
+| **Gateway** | API Gateway container (`campusconnect-gateway`) | Public API Gateway Web Service |
+| **Network** | Docker bridge network (`student-network`) | Cloud internal network / HTTPS |
+| **Services** | Student, Course, Order (service names) | Student, Course, Order (service URLs) |
+| **Database** | MongoDB container | MongoDB Atlas (Cloud) |
+
+*What stays the same:* application code, routes, API contract.  
+*What changes:* where it runs, how service URLs are resolved, and public exposure of the gateway.
+
 ---
 
 ## 3. Technology Stack
@@ -209,11 +222,9 @@ Use IDs that exist in the database connected to the running services.
 
 Service discovery enables microservices to locate and communicate with one another.
 
-### Static Service Discovery
+### Static / Configuration-Based Service Discovery
 
-In this implementation, service locations are configured through environment variables.
-
-Examples include:
+In this implementation, service locations are externalized into environment variables rather than hardcoded in routing logic:
 
 ```env
 USER_SERVICE_URL=http://student-service:3001
@@ -221,13 +232,33 @@ PRODUCT_SERVICE_URL=http://course-service:3002
 ORDER_SERVICE_URL=http://order-service:3003
 ```
 
-These hostnames are examples for the Docker Compose network. The actual values depend on the deployment environment.
+The gateway reads this configuration at startup and builds its routing table dynamically. Changing a target URL/port requires only an environment variable change—no application code is modified.
 
-### Dynamic Service Discovery
+### Local vs Cloud Service URLs
 
-Dynamic service discovery allows services to locate other services automatically through a registry or orchestration platform without manually maintaining fixed service addresses.
+| Environment | Service URL Example | Purpose |
+| :--- | :--- | :--- |
+| **Local Docker Compose** | `http://student-service:3001` | Service name resolution within internal Docker bridge network |
+| **Cloud Internal Service** | `https://campusconnect-student-service.onrender.com` | Platform-provided public / private URL |
+| **Public API Gateway** | `https://campusconnect-gateway-608i.onrender.com` | Single internet-facing entry point for all client traffic |
 
-The current implementation uses environment-variable-based service configuration rather than a dedicated dynamic service registry.
+> **Key Principle:** Service locations must be configuration, not application code. The exact same application container image runs locally and in the cloud simply by changing environment variables.
+
+### Dynamic Service Discovery vs Static Configuration
+
+| Feature | Static / Config-Based (Lab 7) | Dynamic Discovery (Consul, Eureka, K8s DNS) |
+| :--- | :--- | :--- |
+| **Service Registration** | Manually configured via env vars or config files | Automatic self-registration on service boot |
+| **Health Checking** | Unaware; gateway attempts routing until timeout/error | Continual active health checks; unregisters failed instances |
+| **Horizontal Scaling** | Requires manual restart / re-configuration for new IPs | Automatically tracks and load-balances across all running replicas |
+| **Instance Failure** | Handled reactively (503 on error) | Proactive de-registration; traffic diverted before failures occur |
+| **Complexity** | Lightweight, zero extra infrastructure | Requires dedicated registry cluster (etcd/Consul/Eureka) |
+
+**What a dynamic registry adds that static config cannot:**
+1. **Automatic Life-Cycle Tracking:** Services dynamically register on startup and de-register on graceful shutdown or crash.
+2. **Real-Time Health-Aware Routing:** Actively evicts unhealthy containers from the routing pool before client requests arrive.
+3. **Seamless Elastic Auto-Scaling:** New service replicas automatically receive traffic without gateway redeployments or configuration updates.
+4. **Dynamic Client/Server Load Balancing:** Spreads load dynamically across multi-node or multi-region replicas.
 
 ---
 
@@ -310,27 +341,44 @@ The database connection string should be supplied through the appropriate servic
 
 ## 10. Cloud Deployment
 
+## 10. Cloud Deployment
+
 The application is configured for deployment using Render and MongoDB Atlas.
 
-### Deployment Overview
+### Cloud Deployment Sequence
 
-1. Create a MongoDB Atlas cluster.
-2. Configure the database user and network access.
-3. Configure the MongoDB connection strings.
-4. Deploy the backend microservices.
-5. Configure service URLs through environment variables.
-6. Deploy the API Gateway.
-7. Verify the Gateway's public endpoint.
-8. Test all API routes through the deployed Gateway.
+1. **Verify local system:** Confirm all microservices (`student-service`, `course-service`, `order-service`, `gateway`) function correctly in Docker Compose.
+2. **Build service images:** Ensure Dockerfiles build clean, self-contained container images.
+3. **Select cloud platform:** Render (`render.com`) was chosen for cloud web services and API Gateway hosting.
+4. **Push / build images:** Push repository code to GitHub and connect Web Services on Render.
+5. **Deploy services:** Deploy Student Service, Course Service, and Order Service as independent cloud services.
+6. **Configure environment variables:** Set runtime configurations (`PORT`, `USER_SERVICE_URL`, `PRODUCT_SERVICE_URL`, `ORDER_SERVICE_URL`) via the Render Dashboard.
+7. **Configure MongoDB Atlas:** Provision an Atlas M0 cluster, configure database users, and whitelist network access (`0.0.0.0/0`).
+8. **Deploy API Gateway:** Deploy the API Gateway container, referencing cloud service URLs.
+9. **Obtain public gateway URL:** Note the internet-facing domain (`https://campusconnect-gateway-608i.onrender.com`).
+10. **Test through public URL:** Execute end-to-end Postman integration tests against the live gateway URL.
+
+### MongoDB Atlas and Environment Configuration
+
+Environment variables configured on Render:
+
+```env
+MONGODB_URI=<MongoDB Atlas connection string>
+USER_SERVICE_URL=<service URL>
+PRODUCT_SERVICE_URL=<service URL>
+ORDER_SERVICE_URL=<service URL>
+```
+
+> **Security Note:** Secrets, passwords, and MongoDB Atlas connection URIs are managed through platform secrets and environment variables—never committed directly to GitHub.
 
 ### Deployment URLs
 
-| Component       | Deployment URL |
-| --------------- | -------------- |
-| API Gateway     | `https://campusconnect-gateway-608i.onrender.com` |
-| Student Service | `https://campusconnect-student-service.onrender.com` |
-| Course Service  | `https://campusconnect-course-service.onrender.com` (Or Docker local) |
-| Order Service   | `https://campusconnect-order-service-wgs4.onrender.com` |
+| Component | Deployment URL |
+| :--- | :--- |
+| **API Gateway** | `https://campusconnect-gateway-608i.onrender.com` |
+| **Student Service** | `https://campusconnect-student-service.onrender.com` |
+| **Course Service** | `https://campusconnect-course-service.onrender.com` (Or Docker local) |
+| **Order Service** | `https://campusconnect-order-service-wgs4.onrender.com` |
 
 ### Public Gateway Endpoint
 
@@ -348,31 +396,43 @@ https://campusconnect-gateway-608i.onrender.com/health
 
 ## 11. Testing and Validation
 
-The APIs are tested using Postman.
+The APIs are tested using Postman with both local (`http://localhost:3000`) and cloud (`https://campusconnect-gateway-608i.onrender.com`) environments.
 
-### Local Testing
+### Hands-On Exercise: Gateway Failure Test
 
-- Verify Gateway health.
-- Retrieve student records through `/users`.
-- Retrieve course records through `/products`.
-- Create and retrieve orders through `/orders`.
-- Verify that requests are forwarded to the correct service.
-- Verify that invalid input produces appropriate error responses.
-- Verify that unavailable backend services produce appropriate gateway errors.
+To demonstrate centralized error handling, an explicit failure and recovery test was performed:
+
+1. **Start all services:** Gateway, Student Service, Course Service, Order Service running.
+2. **Normal Request (200 OK):**
+   - Sent `GET /users/101` through the Gateway (`http://localhost:3000/users/101`).
+   - Gateway proxied to Student Service and returned `200 OK` with student record.
+3. **Stop the User Service:**
+   - Ran `docker compose stop student-service`.
+4. **Repeat the Request through Gateway:**
+   - Sent `GET /users/101` through Gateway again.
+5. **Verify 503/502 Error Handling:**
+   - Gateway did not hang or crash.
+   - Clean `503 Service Unavailable` response returned immediately:
+     ```json
+     {
+       "error": "User Service unavailable",
+       "message": "The requested microservice (User Service) is unreachable or down.",
+       "statusCode": 503
+     }
+     ```
+6. **Restart User Service & Verify Recovery:**
+   - Ran `docker compose start student-service`.
+   - Re-sent `GET /users/101`.
+   - Verified immediate recovery with `200 OK`.
 
 ### Cloud Testing
 
-Repeat the API tests using the public Gateway URL.
-
-Testing should verify:
-
-- Successful responses from available services.
-- Correct routing through the Gateway.
-- Data persistence in MongoDB Atlas.
-- Proper handling of invalid requests.
-- Appropriate error responses when a dependent service is unavailable.
-
-Screenshots of successful requests, error handling, and deployment status are included in the lab submission evidence.
+The full suite was re-run against the public Gateway URL (`https://campusconnect-gateway-608i.onrender.com`):
+- `GET /health` -> `200 OK`
+- `GET /users` & `GET /users/101` -> `200 OK`
+- `POST /users` -> `201 Created`
+- `GET /orders` & `POST /orders` -> `200 OK` / `201 Created`
+- Inter-service validation confirmed: Order Service successfully called Student Service and Course Service before persisting data to MongoDB Atlas.
 
 ---
 
@@ -442,3 +502,16 @@ Lab 7 builds upon the microservices implementation developed in Lab 6 by introdu
 **GitHub:** https://github.com/Jainam249/CampusConnect
 
 ---
+
+## 17. Final Checklist
+
+| API Gateway | Service Discovery | Cloud Deployment | Evidence |
+| :--- | :--- | :--- | :--- |
+| [x] `api-gateway` service created | [x] Service URLs in env vars / config | [x] Cloud platform chosen (Render) | [x] Postman: gateway routes |
+| [x] Routes to User / Product / Order | [x] No hard-coded URLs in route code | [x] Gateway + services deployed | [x] Postman: `/health` check |
+| [x] `GET /health` implemented | [x] Config change proven without code change | [x] Env vars set; Atlas connected, no secrets committed | [x] Failure test: 502/503 + recovery |
+| [x] Request logging added | [x] Static vs dynamic discussed in README | [x] Public gateway URL reachable | [x] Cloud deployment screenshots |
+| [x] 502/503 on unreachable service | [x] Local vs cloud URLs understood | [x] Postman re-tested on public URL | [x] Updated `README.md` |
+
+---
+

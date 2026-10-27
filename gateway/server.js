@@ -1,7 +1,11 @@
 const express = require("express");
+const cors = require("cors");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const app = express();
+
+// Enable CORS for browser (React) clients as specified in Lab 7
+app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
@@ -52,22 +56,28 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Proxy error handler
-function handleProxyError(err, req, res) {
-  console.error(
-    `[Gateway Error] ${req.method} ${req.originalUrl}:`,
-    err.message,
-  );
+// Centralized proxy error handler factory (returns clean 503/502 JSON error response)
+function createProxyErrorHandler(serviceName) {
+  return (err, req, res) => {
+    console.error(
+      `[Gateway Error] ${req.method} ${req.originalUrl} -> ${serviceName}:`,
+      err.message,
+    );
 
-  if (!res.headersSent) {
-    res.status(502).json({
-      error: "Bad Gateway",
-      message: "The requested microservice is unavailable.",
-    });
-  }
+    if (!res.headersSent) {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          error: `${serviceName} unavailable`,
+          message: `The requested microservice (${serviceName}) is unreachable or down.`,
+          statusCode: 503,
+        }),
+      );
+    }
+  };
 }
 
-// User Service routes
+// User Service routes (/users/* -> User Service)
 app.use(
   "/users",
   createProxyMiddleware({
@@ -81,12 +91,12 @@ app.use(
             `to User Service: ${USER_SERVICE_URL}`,
         );
       },
-      error: handleProxyError,
+      error: createProxyErrorHandler("User Service"),
     },
   }),
 );
 
-// Product Service routes
+// Product Service routes (/products/* -> Product Service)
 app.use(
   "/products",
   createProxyMiddleware({
@@ -100,12 +110,12 @@ app.use(
             `to Product Service: ${PRODUCT_SERVICE_URL}`,
         );
       },
-      error: handleProxyError,
+      error: createProxyErrorHandler("Product Service"),
     },
   }),
 );
 
-// Order Service routes
+// Order Service routes (/orders/* -> Order Service)
 app.use(
   "/orders",
   createProxyMiddleware({
@@ -119,7 +129,7 @@ app.use(
             `to Order Service: ${ORDER_SERVICE_URL}`,
         );
       },
-      error: handleProxyError,
+      error: createProxyErrorHandler("Order Service"),
     },
   }),
 );

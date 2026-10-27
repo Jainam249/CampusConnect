@@ -1,0 +1,310 @@
+{
+	"info": {
+		"_postman_id": "a9b8c7d6-e5f4-4321-8765-123456789abc",
+		"name": "CampusConnect Lab 7 - API Gateway",
+		"description": "Postman Collection for Web Services & SOA Lab 7 (API Gateway, Service Discovery & Cloud Deployment)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Gateway & Health",
+			"item": [
+				{
+					"name": "1.1 Gateway Root Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Returns Gateway overview and available endpoints."
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Gateway Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Checks health status of the API Gateway."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. User Service Routes (/users)",
+			"item": [
+				{
+					"name": "2.1 Get All Students",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Get Student by ID (e.g. 101)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/101",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"101"
+							]
+						},
+						"description": "Retrieves student record (e.g. ID 101 as specified in Lab 7 manual)."
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Create Student",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Aarav Patel\",\n  \"email\": \"aarav.patel@example.com\",\n  \"course\": \"Cloud Computing\",\n  \"semester\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Product Service Routes (/products)",
+			"item": [
+				{
+					"name": "3.1 Get All Courses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Get Course by ID (e.g. 501)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products/501",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products",
+								"501"
+							]
+						},
+						"description": "Retrieves course record (e.g. ID 501 as specified in Lab 7 manual)."
+					},
+					"response": []
+				},
+				{
+					"name": "3.3 Create Course",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Web Services & SOA\",\n  \"code\": \"IT627\",\n  \"department\": \"Information Technology\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Order Service Routes (/orders)",
+			"item": [
+				{
+					"name": "4.1 Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"6abccbe56255ecc23bb4d657\",\n  \"productId\": \"6abccbe5c757e9c033574d17\",\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Gateway Failure Test (Exercise: 502/503 & Recovery)",
+			"item": [
+				{
+					"name": "5.1 Step 1 - Normal Request (User Service Running -> 200 OK)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/101",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"101"
+							]
+						},
+						"description": "Exercise Step 2: Call GET /users/101 through the gateway and confirm a normal 200 response."
+					},
+					"response": []
+				},
+				{
+					"name": "5.2 Step 2 - Failure Test (User Service Stopped -> 503/502)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/101",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"101"
+							]
+						},
+						"description": "Exercise Step 4-5: Run after stopping User Service (e.g. docker compose stop student-service). Gateway must return 503/502 without hanging or crashing."
+					},
+					"response": []
+				},
+				{
+					"name": "5.3 Step 3 - Recovery Verification (User Service Restarted -> 200 OK)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/101",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"101"
+							]
+						},
+						"description": "Exercise Step 6: Run after restarting User Service (e.g. docker compose start student-service). Confirm automatic recovery and 200 response."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://campusconnect-gateway-608i.onrender.com",
+			"type": "string"
+		},
+		{
+			"key": "localBaseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}
